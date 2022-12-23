@@ -20,7 +20,7 @@ This document outlines the basic Design/Architecture
 * 2) The Cluster checks if the volume is already used
 * 2a) If the volume is already used, reject request
 * 2b) If the volume is free, generate an access token for the client and store using Raft
-* 3) Client loads the most recent Metadata/Info CRDT for the Volume
+* 3) Client loads the most recent Metadata/Info CRDT for the Volume (TODO add more details)
 * 4) Client uses the given access token for all requests for this Volume
 * 5) Client refreshes the Token every so often (also stored in Raft)
 
@@ -39,8 +39,18 @@ This document outlines the basic Design/Architecture
 * 2b-3) Update the Volume CRDT with the new Chunk information and send the Updates into the Cluster
 * 3) Wait for a given Number of responses for the Writes (depending on the desired consistency garantues)
 
+TODO Handle Node failure
+
 ### Read from Client
 * 1) Calculate the corresponding Chunk for the current Read position
 * 2) Request the Chunk from all or some of the Nodes that store that Chunk
 * 3) Wait for some responses to validate their Correctnes (depending on desired correctnes)
 * 3a) If they are inconsistent, update the wrong nodes with the correct data (according to the majority or determined otherwise)
+
+TODO Handle Node failure
+
+### A Node crashes/leaves the Cluster
+* 1) Go through all the Volumes that were stored on the Node
+* 1a) If the Volume is currently used, skip it
+* 1b) Otherwise mark the Volume as being repaired up (if a Client requests this Volume, it will be freed up and given to the client to not reduce availability)
+* 2) Once the Volume is marked as being repaired, the current Node acts as a Client and tries to relocate the chunks that were stored on the failed Node
