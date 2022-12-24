@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>hls</name>
+	<name>crdt</name>
 	<comment></comment>
 	<projects>
 	</projects>
@@ -18,12 +18,7 @@
 		<link>
 			<name>crdt.tla</name>
 			<type>1</type>
-			<location>/Users/leon/Documents/coding/rust/hls/spec/crdt.tla</location>
-		</link>
-		<link>
-			<name>hls.tla</name>
-			<type>1</type>
-			<locationURI>PARENT-1-PROJECT_LOC/hls.tla</locationURI>
+			<locationURI>PARENT-1-PROJECT_LOC/crdt.tla</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -9,6 +9,11 @@ This document outlines the basic Design/Architecture
 ### Raft consensus
 * Stores which Volume is allocated to which Node (using access tokens not node identifiers)
 
+### Gossip Protocol
+* Runs periodically with random varience to reduce load spikes
+* Each Node randomly selects a fixed number of other Nodes in the Cluster to update
+* Sends its' latest information to the selected Nodes
+
 ### Volume CRDTs
 * Store all the Contents of the Volumes (Files/Directories)
 * Stores all the Chunks for each File
@@ -39,7 +44,8 @@ This document outlines the basic Design/Architecture
 * 2b-3) Update the Volume CRDT with the new Chunk information and send the Updates into the Cluster
 * 3) Wait for a given Number of responses for the Writes (depending on the desired consistency garantues)
 
-TODO Handle Node failure
+Handling Node failure
+
 
 ### Read from Client
 * 1) Calculate the corresponding Chunk for the current Read position
@@ -54,3 +60,5 @@ TODO Handle Node failure
 * 1a) If the Volume is currently used, skip it
 * 1b) Otherwise mark the Volume as being repaired up (if a Client requests this Volume, it will be freed up and given to the client to not reduce availability)
 * 2) Once the Volume is marked as being repaired, the current Node acts as a Client and tries to relocate the chunks that were stored on the failed Node
+
+### A Node joins the Cluster
