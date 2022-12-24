@@ -44,18 +44,22 @@ define
 end define;
 
 macro send_write(written_to, value) begin
-    with target \in OnlineServers \ written_to do
-      written_to := written_to \union {target};
-      ServerQueues[target].write := Append(ServerQueues[target].write, value);
-      WrittenFiles := WrittenFiles \union {value};
-    end with;
+    if Cardinality(OnlineServers \ written_to) > 0 then
+        with target \in OnlineServers \ written_to do
+          written_to := written_to \union {target};
+          ServerQueues[target].write := Append(ServerQueues[target].write, value);
+          WrittenFiles := WrittenFiles \union {value};
+        end with;
+    end if;
 end macro
 
 macro send_read(written_to, value) begin
-    with target \in OnlineServers \ written_to do
-      written_to := written_to \union {target};
-      ServerQueues[target].read := Append(ServerQueues[target].read, value);
-    end with;
+    if Cardinality(OnlineServers \ written_to) > 0 then
+        with target \in OnlineServers \ written_to do
+            written_to := written_to \union {target};
+            ServerQueues[target].read := Append(ServerQueues[target].read, value);
+        end with;
+    end if;
 end macro
 
 procedure GossipBroadcast(server, ops, neighbours)
@@ -90,6 +94,8 @@ begin
                 tmp_targets := tmp_targets \ {serv};
             end with;
             goto SendOp;
+        else
+            goto Send;
         end if;
 end procedure;
 
@@ -187,9 +193,9 @@ begin
 end process
 
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "7a04b95f" /\ chksum(tla) = "11742a1d")
-\* Process server at line 137 col 1 changed to server_
-\* Process variable ops of process server at line 141 col 5 changed to ops_
+\* BEGIN TRANSLATION (chksum(pcal) = "d4d24a9f" /\ chksum(tla) = "926524a4")
+\* Process server at line 143 col 1 changed to server_
+\* Process variable ops of process server at line 147 col 5 changed to ops_
 CONSTANT defaultInitValue
 VARIABLES ServerQueues, ServerData, ClientCrdts, ServerCrdts, WrittenFiles, 
           ConfirmedFiles, OnlineServers, pc, stack
@@ -288,7 +294,7 @@ SendOp(self) == /\ pc[self] = "SendOp"
                                 /\ ServerQueues' = [ServerQueues EXCEPT ![serv].crdt = Append(ServerQueues[serv].crdt, op[self])]
                                 /\ tmp_targets' = [tmp_targets EXCEPT ![self] = tmp_targets[self] \ {serv}]
                            /\ pc' = [pc EXCEPT ![self] = "SendOp"]
-                      ELSE /\ pc' = [pc EXCEPT ![self] = "Error"]
+                      ELSE /\ pc' = [pc EXCEPT ![self] = "Send"]
                            /\ UNCHANGED << ServerQueues, tmp_targets >>
                 /\ UNCHANGED << ServerData, ClientCrdts, ServerCrdts, 
                                 WrittenFiles, ConfirmedFiles, OnlineServers, 
@@ -326,10 +332,15 @@ IncRun(self) == /\ pc[self] = "IncRun"
 
 WriteToReplicas(self) == /\ pc[self] = "WriteToReplicas"
                          /\ IF send_iteration[self] < Replicas
-                               THEN /\ \E target \in OnlineServers \ send_written_to[self]:
-                                         /\ send_written_to' = [send_written_to EXCEPT ![self] = send_written_to[self] \union {target}]
-                                         /\ ServerQueues' = [ServerQueues EXCEPT ![target].write = Append(ServerQueues[target].write, self)]
-                                         /\ WrittenFiles' = (WrittenFiles \union {self})
+                               THEN /\ IF Cardinality(OnlineServers \ send_written_to[self]) > 0
+                                          THEN /\ \E target \in OnlineServers \ send_written_to[self]:
+                                                    /\ send_written_to' = [send_written_to EXCEPT ![self] = send_written_to[self] \union {target}]
+                                                    /\ ServerQueues' = [ServerQueues EXCEPT ![target].write = Append(ServerQueues[target].write, self)]
+                                                    /\ WrittenFiles' = (WrittenFiles \union {self})
+                                          ELSE /\ TRUE
+                                               /\ UNCHANGED << ServerQueues, 
+                                                               WrittenFiles, 
+                                                               send_written_to >>
                                     /\ send_iteration' = [send_iteration EXCEPT ![self] = send_iteration[self] + 1]
                                     /\ pc' = [pc EXCEPT ![self] = "WriteToReplicas"]
                                ELSE /\ pc' = [pc EXCEPT ![self] = "StoreInLocalVolume"]
@@ -375,9 +386,13 @@ StoreInServerVolume(self) == /\ pc[self] = "StoreInServerVolume"
 
 ReadFromReplicas(self) == /\ pc[self] = "ReadFromReplicas"
                           /\ IF send_iteration[self] < Replicas
-                                THEN /\ \E target \in OnlineServers \ send_written_to[self]:
-                                          /\ send_written_to' = [send_written_to EXCEPT ![self] = send_written_to[self] \union {target}]
-                                          /\ ServerQueues' = [ServerQueues EXCEPT ![target].read = Append(ServerQueues[target].read, self)]
+                                THEN /\ IF Cardinality(OnlineServers \ send_written_to[self]) > 0
+                                           THEN /\ \E target \in OnlineServers \ send_written_to[self]:
+                                                     /\ send_written_to' = [send_written_to EXCEPT ![self] = send_written_to[self] \union {target}]
+                                                     /\ ServerQueues' = [ServerQueues EXCEPT ![target].read = Append(ServerQueues[target].read, self)]
+                                           ELSE /\ TRUE
+                                                /\ UNCHANGED << ServerQueues, 
+                                                                send_written_to >>
                                      /\ send_iteration' = [send_iteration EXCEPT ![self] = send_iteration[self] + 1]
                                      /\ pc' = [pc EXCEPT ![self] = "ReadFromReplicas"]
                                 ELSE /\ pc' = [pc EXCEPT ![self] = "IncRun"]
@@ -491,5 +506,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sat Dec 24 13:34:06 CET 2022 by leon
+\* Last modified Sat Dec 24 14:06:03 CET 2022 by leon
 \* Created Tue Dec 20 19:55:07 CET 2022 by leon
