@@ -2,25 +2,25 @@
 EXTENDS hls, TLC
 
 \* CONSTANT definitions @modelParameterConstants:1Clients
-const_167199908957022000 == 
+const_167199919752137000 == 
 {1}
 ----
 
 \* CONSTANT definitions @modelParameterConstants:2REQS
-const_167199908957023000 == 
+const_167199919752138000 == 
 1
 ----
 
 \* CONSTANT definitions @modelParameterConstants:3Servers
-const_167199908957024000 == 
-{2}
+const_167199919752139000 == 
+{2,3}
 ----
 
 \* CONSTANT definitions @modelParameterConstants:4Replicas
-const_167199908957025000 == 
+const_167199919752140000 == 
 1
 ----
 
 =============================================================================
 \* Modification History
-\* Created Sun Dec 25 21:11:29 CET 2022 by leon
+\* Created Sun Dec 25 21:13:17 CET 2022 by leon
