@@ -182,8 +182,12 @@ begin
             op := Head(ServerQueues[self].crdt);
             ServerQueues[self].crdt := Tail(ServerQueues[self].crdt);
             
-            ServerCrdts[self] := CrdtSet!SetApplyOp(ServerCrdts[self], op);
-            ops := Append(ops, op);
+            with new_version = CrdtSet!SetApplyOp(ServerCrdts[self], op) do
+                if ServerCrdts[self] # new_version then
+                    ServerCrdts[self] := new_version;
+                    ops := Append(ops, op);
+                end if;
+            end with;
         end if; 
         
         goto RunServer;
@@ -199,7 +203,7 @@ begin
 end process
 
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "579b7b66" /\ chksum(tla) = "22816208")
+\* BEGIN TRANSLATION (chksum(pcal) = "b015a101" /\ chksum(tla) = "4bd16787")
 \* Process server at line 145 col 1 changed to server_
 \* Process variable ops of process server at line 149 col 5 changed to ops_
 CONSTANT defaultInitValue
@@ -453,8 +457,13 @@ ServiceRequest(self) == /\ pc[self] = "ServiceRequest"
                                          ELSE /\ IF ServerQueues[self].crdt # <<>>
                                                     THEN /\ op' = [op EXCEPT ![self] = Head(ServerQueues[self].crdt)]
                                                          /\ ServerQueues' = [ServerQueues EXCEPT ![self].crdt = Tail(ServerQueues[self].crdt)]
-                                                         /\ ServerCrdts' = [ServerCrdts EXCEPT ![self] = CrdtSet!SetApplyOp(ServerCrdts[self], op'[self])]
-                                                         /\ ops_' = [ops_ EXCEPT ![self] = Append(ops_[self], op'[self])]
+                                                         /\ LET new_version == CrdtSet!SetApplyOp(ServerCrdts[self], op'[self]) IN
+                                                              IF ServerCrdts[self] # new_version
+                                                                 THEN /\ ServerCrdts' = [ServerCrdts EXCEPT ![self] = new_version]
+                                                                      /\ ops_' = [ops_ EXCEPT ![self] = Append(ops_[self], op'[self])]
+                                                                 ELSE /\ TRUE
+                                                                      /\ UNCHANGED << ServerCrdts, 
+                                                                                      ops_ >>
                                                     ELSE /\ TRUE
                                                          /\ UNCHANGED << ServerQueues, 
                                                                          ServerCrdts, 
@@ -518,5 +527,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Dec 25 14:45:07 CET 2022 by leon
+\* Last modified Sun Dec 25 18:01:12 CET 2022 by leon
 \* Created Tue Dec 20 19:55:07 CET 2022 by leon
