@@ -36,6 +36,8 @@ define
     AllFilesOnline == \A f \in ConfirmedFiles: ContainsFile(f)
     AllClientsDone == \A t \in Clients: pc[t] = "Done"
     AllDone == AllClientsDone /\ (\A serv \in Servers: pc[serv] = "Done")
+    
+    ServerCrdtsSame == \A serv \in OnlineServers: \A other \in OnlineServers: ServerCrdts[serv] = ServerCrdts[other]
 
     IsCorrect ==
         /\ Cardinality(Servers \ OnlineServers) = 0 => AllFilesOnline
@@ -188,14 +190,18 @@ begin
     
     \* Try to send the current CRDT State to other Volumes
     GossipState:
-        call GossipBroadcast(self, ops, 1);
-        goto RunServer;
+        if ~ServerCrdtsSame then
+            call GossipBroadcast(self, ops, 1);
+            goto RunServer;
+        else
+            goto RunServer;
+        end if;
 end process
 
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "d4d24a9f" /\ chksum(tla) = "926524a4")
-\* Process server at line 143 col 1 changed to server_
-\* Process variable ops of process server at line 147 col 5 changed to ops_
+\* BEGIN TRANSLATION (chksum(pcal) = "579b7b66" /\ chksum(tla) = "22816208")
+\* Process server at line 145 col 1 changed to server_
+\* Process variable ops of process server at line 149 col 5 changed to ops_
 CONSTANT defaultInitValue
 VARIABLES ServerQueues, ServerData, ClientCrdts, ServerCrdts, WrittenFiles, 
           ConfirmedFiles, OnlineServers, pc, stack
@@ -207,6 +213,8 @@ ContainsFile(file) == \E x \in OnlineServers: file \in ServerData[x]
 AllFilesOnline == \A f \in ConfirmedFiles: ContainsFile(f)
 AllClientsDone == \A t \in Clients: pc[t] = "Done"
 AllDone == AllClientsDone /\ (\A serv \in Servers: pc[serv] = "Done")
+
+ServerCrdtsSame == \A serv \in OnlineServers: \A other \in OnlineServers: ServerCrdts[serv] = ServerCrdts[other]
 
 IsCorrect ==
     /\ Cardinality(Servers \ OnlineServers) = 0 => AllFilesOnline
@@ -463,22 +471,26 @@ ServiceRequest(self) == /\ pc[self] = "ServiceRequest"
                                         send_written_to, last_op >>
 
 GossipState(self) == /\ pc[self] = "GossipState"
-                     /\ /\ neighbours' = [neighbours EXCEPT ![self] = 1]
-                        /\ ops' = [ops EXCEPT ![self] = ops_[self]]
-                        /\ server' = [server EXCEPT ![self] = self]
-                        /\ stack' = [stack EXCEPT ![self] = << [ procedure |->  "GossipBroadcast",
-                                                                 pc        |->  "RunServer",
-                                                                 targets   |->  targets[self],
-                                                                 tmp_targets |->  tmp_targets[self],
-                                                                 op        |->  op[self],
-                                                                 server    |->  server[self],
-                                                                 ops       |->  ops[self],
-                                                                 neighbours |->  neighbours[self] ] >>
-                                                             \o stack[self]]
-                     /\ targets' = [targets EXCEPT ![self] = {}]
-                     /\ tmp_targets' = [tmp_targets EXCEPT ![self] = {}]
-                     /\ op' = [op EXCEPT ![self] = {}]
-                     /\ pc' = [pc EXCEPT ![self] = "SetupTargets"]
+                     /\ IF ~ServerCrdtsSame
+                           THEN /\ /\ neighbours' = [neighbours EXCEPT ![self] = 1]
+                                   /\ ops' = [ops EXCEPT ![self] = ops_[self]]
+                                   /\ server' = [server EXCEPT ![self] = self]
+                                   /\ stack' = [stack EXCEPT ![self] = << [ procedure |->  "GossipBroadcast",
+                                                                            pc        |->  "RunServer",
+                                                                            targets   |->  targets[self],
+                                                                            tmp_targets |->  tmp_targets[self],
+                                                                            op        |->  op[self],
+                                                                            server    |->  server[self],
+                                                                            ops       |->  ops[self],
+                                                                            neighbours |->  neighbours[self] ] >>
+                                                                        \o stack[self]]
+                                /\ targets' = [targets EXCEPT ![self] = {}]
+                                /\ tmp_targets' = [tmp_targets EXCEPT ![self] = {}]
+                                /\ op' = [op EXCEPT ![self] = {}]
+                                /\ pc' = [pc EXCEPT ![self] = "SetupTargets"]
+                           ELSE /\ pc' = [pc EXCEPT ![self] = "RunServer"]
+                                /\ UNCHANGED << stack, server, ops, neighbours, 
+                                                targets, tmp_targets, op >>
                      /\ UNCHANGED << ServerQueues, ServerData, ClientCrdts, 
                                      ServerCrdts, WrittenFiles, ConfirmedFiles, 
                                      OnlineServers, iteration, send_iteration, 
@@ -506,5 +518,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sat Dec 24 14:06:03 CET 2022 by leon
+\* Last modified Sun Dec 25 14:45:07 CET 2022 by leon
 \* Created Tue Dec 20 19:55:07 CET 2022 by leon

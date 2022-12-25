@@ -1,31 +1,26 @@
 ---- MODULE MC ----
 EXTENDS hls, TLC
 
-\* CONSTANT definitions @modelParameterConstants:0REQS
-const_167189060947997000 == 
-2
-----
-
 \* CONSTANT definitions @modelParameterConstants:1Clients
-const_167189060947998000 == 
+const_16719755299017000 == 
 {1}
 ----
 
-\* CONSTANT definitions @modelParameterConstants:2Servers
-const_167189060947999000 == 
+\* CONSTANT definitions @modelParameterConstants:2REQS
+const_16719755299028000 == 
+2
+----
+
+\* CONSTANT definitions @modelParameterConstants:3Servers
+const_16719755299029000 == 
 {2,3,4}
 ----
 
-\* CONSTANT definitions @modelParameterConstants:3Replicas
-const_1671890609479100000 == 
+\* CONSTANT definitions @modelParameterConstants:4Replicas
+const_167197552990210000 == 
 1
-----
-
-\* CONSTANT definitions @modelParameterConstants:4defaultInitValue
-const_1671890609480101000 == 
-{}
 ----
 
 =============================================================================
 \* Modification History
-\* Created Sat Dec 24 15:03:29 CET 2022 by leon
+\* Created Sun Dec 25 14:38:49 CET 2022 by leon
