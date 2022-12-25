@@ -10,7 +10,7 @@ ASSUME REQS \in 0..10
 CONSTANT Clients
 CONSTANT Servers
 ASSUME Clients \intersect Servers = {}
-ASSUME Cardinality(Servers) > 1
+ASSUME Cardinality(Servers) > 0
 
 CONSTANT Replicas
 ASSUME Replicas \in 1..Cardinality(Servers)
@@ -527,5 +527,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Dec 25 18:01:12 CET 2022 by leon
+\* Last modified Sun Dec 25 21:09:39 CET 2022 by leon
 \* Created Tue Dec 20 19:55:07 CET 2022 by leon
