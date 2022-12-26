@@ -123,7 +123,7 @@ begin
                     ClientCrdts[self] := CrdtSet!SetApplyOp(ClientCrdts[self], last_op);
                 StoreInServerVolume:
                     while Cardinality(send_written_to) > 0 do
-                        with serv \in send_written_to do
+                        with serv = CHOOSE x \in send_written_to: TRUE do
                             ServerQueues[serv].crdt := Append(ServerQueues[serv].crdt, last_op);
                             send_written_to := send_written_to \ {serv};
                         end with;
@@ -203,7 +203,7 @@ begin
 end process
 
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "b015a101" /\ chksum(tla) = "4bd16787")
+\* BEGIN TRANSLATION (chksum(pcal) = "5ca2e783" /\ chksum(tla) = "f91e6165")
 \* Process server at line 145 col 1 changed to server_
 \* Process variable ops of process server at line 149 col 5 changed to ops_
 CONSTANT defaultInitValue
@@ -380,7 +380,7 @@ StoreInLocalVolume(self) == /\ pc[self] = "StoreInLocalVolume"
 
 StoreInServerVolume(self) == /\ pc[self] = "StoreInServerVolume"
                              /\ IF Cardinality(send_written_to[self]) > 0
-                                   THEN /\ \E serv \in send_written_to[self]:
+                                   THEN /\ LET serv == CHOOSE x \in send_written_to[self]: TRUE IN
                                              /\ ServerQueues' = [ServerQueues EXCEPT ![serv].crdt = Append(ServerQueues[serv].crdt, last_op[self])]
                                              /\ send_written_to' = [send_written_to EXCEPT ![self] = send_written_to[self] \ {serv}]
                                         /\ pc' = [pc EXCEPT ![self] = "StoreInServerVolume"]
@@ -527,5 +527,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Dec 25 21:09:39 CET 2022 by leon
+\* Last modified Mon Dec 26 22:18:53 CET 2022 by leon
 \* Created Tue Dec 20 19:55:07 CET 2022 by leon
