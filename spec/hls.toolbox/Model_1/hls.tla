@@ -23,6 +23,7 @@ variables
   
   ClientCrdts = [t \in Clients |-> CrdtSet!EmptySet];
   ServerCrdts = [t \in Servers |-> CrdtSet!EmptySet];
+  ServerOps = [t \in Servers |-> <<>>];
   
   WrittenFiles = {};
   ConfirmedFiles = {};
@@ -38,6 +39,8 @@ define
     AllDone == AllClientsDone /\ (\A serv \in Servers: pc[serv] = "Done")
     
     ServerCrdtsSame == \A serv \in OnlineServers: \A other \in OnlineServers: ServerCrdts[serv] = ServerCrdts[other]
+    
+    OpListInLimit == (\E serv \in Servers: Len(ServerOps[serv]) < Replicas * Cardinality(Servers) * REQS * Cardinality(Clients) + 1)
 
     IsCorrect ==
         /\ Cardinality(Servers \ OnlineServers) = 0 => AllFilesOnline
@@ -91,7 +94,7 @@ begin
         end if;
     SendOp:
         if Cardinality(tmp_targets) > 0 then
-            with serv \in tmp_targets do
+            with serv = CHOOSE x \in tmp_targets: TRUE do
                 ServerQueues[serv].crdt := Append(ServerQueues[serv].crdt, op);
                 tmp_targets := tmp_targets \ {serv};
             end with;
@@ -123,7 +126,7 @@ begin
                     ClientCrdts[self] := CrdtSet!SetApplyOp(ClientCrdts[self], last_op);
                 StoreInServerVolume:
                     while Cardinality(send_written_to) > 0 do
-                        with serv \in send_written_to do
+                        with serv = CHOOSE x \in send_written_to: TRUE do
                             ServerQueues[serv].crdt := Append(ServerQueues[serv].crdt, last_op);
                             send_written_to := send_written_to \ {serv};
                         end with;
@@ -146,7 +149,6 @@ process server \in Servers
 variables
     write_request = 0;
     read_request = 0;
-    ops = <<>>;
 begin
     RunServer:
         either
@@ -185,7 +187,7 @@ begin
             with new_version = CrdtSet!SetApplyOp(ServerCrdts[self], op) do
                 if ServerCrdts[self] # new_version then
                     ServerCrdts[self] := new_version;
-                    ops := Append(ops, op);
+                    ServerOps[self] := Append(ServerOps[self], op);
                 end if;
             end with;
         end if; 
@@ -195,7 +197,7 @@ begin
     \* Try to send the current CRDT State to other Volumes
     GossipState:
         if ~ServerCrdtsSame then
-            call GossipBroadcast(self, ops, 1);
+            call GossipBroadcast(self, ServerOps[self], 1);
             goto RunServer;
         else
             goto RunServer;
@@ -203,12 +205,11 @@ begin
 end process
 
 end algorithm; *)
-\* BEGIN TRANSLATION (chksum(pcal) = "b015a101" /\ chksum(tla) = "4bd16787")
-\* Process server at line 145 col 1 changed to server_
-\* Process variable ops of process server at line 149 col 5 changed to ops_
+\* BEGIN TRANSLATION (chksum(pcal) = "477ced0e" /\ chksum(tla) = "64438bd4")
+\* Process server at line 148 col 1 changed to server_
 CONSTANT defaultInitValue
-VARIABLES ServerQueues, ServerData, ClientCrdts, ServerCrdts, WrittenFiles, 
-          ConfirmedFiles, OnlineServers, pc, stack
+VARIABLES ServerQueues, ServerData, ClientCrdts, ServerCrdts, ServerOps, 
+          WrittenFiles, ConfirmedFiles, OnlineServers, pc, stack
 
 (* define statement *)
 ServerHasWork(serv) == ServerQueues[serv].write /= <<>> \/ ServerQueues[serv].read /= <<>> \/ ServerQueues[serv].crdt /= <<>>
@@ -220,6 +221,8 @@ AllDone == AllClientsDone /\ (\A serv \in Servers: pc[serv] = "Done")
 
 ServerCrdtsSame == \A serv \in OnlineServers: \A other \in OnlineServers: ServerCrdts[serv] = ServerCrdts[other]
 
+OpListInLimit == (\E serv \in Servers: Len(ServerOps[serv]) < Replicas * Cardinality(Servers) * REQS * Cardinality(Clients) + 1)
+
 IsCorrect ==
     /\ Cardinality(Servers \ OnlineServers) = 0 => AllFilesOnline
     /\ AllDone => (Cardinality(Servers \ OnlineServers) < Replicas => AllFilesOnline)
@@ -227,12 +230,13 @@ IsCorrect ==
 
 VARIABLES server, ops, neighbours, targets, tmp_targets, op, iteration, 
           send_iteration, send_written_to, last_op, write_request, 
-          read_request, ops_
+          read_request
 
-vars == << ServerQueues, ServerData, ClientCrdts, ServerCrdts, WrittenFiles, 
-           ConfirmedFiles, OnlineServers, pc, stack, server, ops, neighbours, 
-           targets, tmp_targets, op, iteration, send_iteration, 
-           send_written_to, last_op, write_request, read_request, ops_ >>
+vars == << ServerQueues, ServerData, ClientCrdts, ServerCrdts, ServerOps, 
+           WrittenFiles, ConfirmedFiles, OnlineServers, pc, stack, server, 
+           ops, neighbours, targets, tmp_targets, op, iteration, 
+           send_iteration, send_written_to, last_op, write_request, 
+           read_request >>
 
 ProcSet == (Clients) \cup (Servers)
 
@@ -241,6 +245,7 @@ Init == (* Global variables *)
         /\ ServerData = [t \in Servers |-> {}]
         /\ ClientCrdts = [t \in Clients |-> CrdtSet!EmptySet]
         /\ ServerCrdts = [t \in Servers |-> CrdtSet!EmptySet]
+        /\ ServerOps = [t \in Servers |-> <<>>]
         /\ WrittenFiles = {}
         /\ ConfirmedFiles = {}
         /\ OnlineServers = Servers
@@ -259,7 +264,6 @@ Init == (* Global variables *)
         (* Process server_ *)
         /\ write_request = [self \in Servers |-> 0]
         /\ read_request = [self \in Servers |-> 0]
-        /\ ops_ = [self \in Servers |-> <<>>]
         /\ stack = [self \in ProcSet |-> << >>]
         /\ pc = [self \in ProcSet |-> CASE self \in Clients -> "Run"
                                         [] self \in Servers -> "RunServer"]
@@ -272,12 +276,12 @@ SetupTargets(self) == /\ pc[self] = "SetupTargets"
                             ELSE /\ pc' = [pc EXCEPT ![self] = "Send"]
                                  /\ UNCHANGED targets
                       /\ UNCHANGED << ServerQueues, ServerData, ClientCrdts, 
-                                      ServerCrdts, WrittenFiles, 
+                                      ServerCrdts, ServerOps, WrittenFiles, 
                                       ConfirmedFiles, OnlineServers, stack, 
                                       server, ops, neighbours, tmp_targets, op, 
                                       iteration, send_iteration, 
                                       send_written_to, last_op, write_request, 
-                                      read_request, ops_ >>
+                                      read_request >>
 
 Send(self) == /\ pc[self] = "Send"
               /\ IF ops[self] = <<>>
@@ -295,24 +299,25 @@ Send(self) == /\ pc[self] = "Send"
                          /\ pc' = [pc EXCEPT ![self] = "SendOp"]
                          /\ UNCHANGED << stack, server, neighbours, targets >>
               /\ UNCHANGED << ServerQueues, ServerData, ClientCrdts, 
-                              ServerCrdts, WrittenFiles, ConfirmedFiles, 
-                              OnlineServers, iteration, send_iteration, 
-                              send_written_to, last_op, write_request, 
-                              read_request, ops_ >>
+                              ServerCrdts, ServerOps, WrittenFiles, 
+                              ConfirmedFiles, OnlineServers, iteration, 
+                              send_iteration, send_written_to, last_op, 
+                              write_request, read_request >>
 
 SendOp(self) == /\ pc[self] = "SendOp"
                 /\ IF Cardinality(tmp_targets[self]) > 0
-                      THEN /\ \E serv \in tmp_targets[self]:
+                      THEN /\ LET serv == CHOOSE x \in tmp_targets[self]: TRUE IN
                                 /\ ServerQueues' = [ServerQueues EXCEPT ![serv].crdt = Append(ServerQueues[serv].crdt, op[self])]
                                 /\ tmp_targets' = [tmp_targets EXCEPT ![self] = tmp_targets[self] \ {serv}]
                            /\ pc' = [pc EXCEPT ![self] = "SendOp"]
                       ELSE /\ pc' = [pc EXCEPT ![self] = "Send"]
                            /\ UNCHANGED << ServerQueues, tmp_targets >>
                 /\ UNCHANGED << ServerData, ClientCrdts, ServerCrdts, 
-                                WrittenFiles, ConfirmedFiles, OnlineServers, 
-                                stack, server, ops, neighbours, targets, op, 
-                                iteration, send_iteration, send_written_to, 
-                                last_op, write_request, read_request, ops_ >>
+                                ServerOps, WrittenFiles, ConfirmedFiles, 
+                                OnlineServers, stack, server, ops, neighbours, 
+                                targets, op, iteration, send_iteration, 
+                                send_written_to, last_op, write_request, 
+                                read_request >>
 
 GossipBroadcast(self) == SetupTargets(self) \/ Send(self) \/ SendOp(self)
 
@@ -327,20 +332,20 @@ Run(self) == /\ pc[self] = "Run"
                    ELSE /\ pc' = [pc EXCEPT ![self] = "Done"]
                         /\ UNCHANGED << send_iteration, send_written_to >>
              /\ UNCHANGED << ServerQueues, ServerData, ClientCrdts, 
-                             ServerCrdts, WrittenFiles, ConfirmedFiles, 
-                             OnlineServers, stack, server, ops, neighbours, 
-                             targets, tmp_targets, op, iteration, last_op, 
-                             write_request, read_request, ops_ >>
+                             ServerCrdts, ServerOps, WrittenFiles, 
+                             ConfirmedFiles, OnlineServers, stack, server, ops, 
+                             neighbours, targets, tmp_targets, op, iteration, 
+                             last_op, write_request, read_request >>
 
 IncRun(self) == /\ pc[self] = "IncRun"
                 /\ iteration' = [iteration EXCEPT ![self] = iteration[self] + 1]
                 /\ pc' = [pc EXCEPT ![self] = "Run"]
                 /\ UNCHANGED << ServerQueues, ServerData, ClientCrdts, 
-                                ServerCrdts, WrittenFiles, ConfirmedFiles, 
-                                OnlineServers, stack, server, ops, neighbours, 
-                                targets, tmp_targets, op, send_iteration, 
-                                send_written_to, last_op, write_request, 
-                                read_request, ops_ >>
+                                ServerCrdts, ServerOps, WrittenFiles, 
+                                ConfirmedFiles, OnlineServers, stack, server, 
+                                ops, neighbours, targets, tmp_targets, op, 
+                                send_iteration, send_written_to, last_op, 
+                                write_request, read_request >>
 
 WriteToReplicas(self) == /\ pc[self] = "WriteToReplicas"
                          /\ IF send_iteration[self] < Replicas
@@ -360,27 +365,28 @@ WriteToReplicas(self) == /\ pc[self] = "WriteToReplicas"
                                                     send_iteration, 
                                                     send_written_to >>
                          /\ UNCHANGED << ServerData, ClientCrdts, ServerCrdts, 
-                                         ConfirmedFiles, OnlineServers, stack, 
-                                         server, ops, neighbours, targets, 
-                                         tmp_targets, op, iteration, last_op, 
-                                         write_request, read_request, ops_ >>
+                                         ServerOps, ConfirmedFiles, 
+                                         OnlineServers, stack, server, ops, 
+                                         neighbours, targets, tmp_targets, op, 
+                                         iteration, last_op, write_request, 
+                                         read_request >>
 
 StoreInLocalVolume(self) == /\ pc[self] = "StoreInLocalVolume"
                             /\ last_op' = [last_op EXCEPT ![self] = CrdtSet!AddOp(self, send_written_to[self])]
                             /\ ClientCrdts' = [ClientCrdts EXCEPT ![self] = CrdtSet!SetApplyOp(ClientCrdts[self], last_op'[self])]
                             /\ pc' = [pc EXCEPT ![self] = "StoreInServerVolume"]
                             /\ UNCHANGED << ServerQueues, ServerData, 
-                                            ServerCrdts, WrittenFiles, 
-                                            ConfirmedFiles, OnlineServers, 
-                                            stack, server, ops, neighbours, 
-                                            targets, tmp_targets, op, 
-                                            iteration, send_iteration, 
+                                            ServerCrdts, ServerOps, 
+                                            WrittenFiles, ConfirmedFiles, 
+                                            OnlineServers, stack, server, ops, 
+                                            neighbours, targets, tmp_targets, 
+                                            op, iteration, send_iteration, 
                                             send_written_to, write_request, 
-                                            read_request, ops_ >>
+                                            read_request >>
 
 StoreInServerVolume(self) == /\ pc[self] = "StoreInServerVolume"
                              /\ IF Cardinality(send_written_to[self]) > 0
-                                   THEN /\ \E serv \in send_written_to[self]:
+                                   THEN /\ LET serv == CHOOSE x \in send_written_to[self]: TRUE IN
                                              /\ ServerQueues' = [ServerQueues EXCEPT ![serv].crdt = Append(ServerQueues[serv].crdt, last_op[self])]
                                              /\ send_written_to' = [send_written_to EXCEPT ![self] = send_written_to[self] \ {serv}]
                                         /\ pc' = [pc EXCEPT ![self] = "StoreInServerVolume"]
@@ -388,13 +394,13 @@ StoreInServerVolume(self) == /\ pc[self] = "StoreInServerVolume"
                                         /\ UNCHANGED << ServerQueues, 
                                                         send_written_to >>
                              /\ UNCHANGED << ServerData, ClientCrdts, 
-                                             ServerCrdts, WrittenFiles, 
-                                             ConfirmedFiles, OnlineServers, 
-                                             stack, server, ops, neighbours, 
-                                             targets, tmp_targets, op, 
-                                             iteration, send_iteration, 
+                                             ServerCrdts, ServerOps, 
+                                             WrittenFiles, ConfirmedFiles, 
+                                             OnlineServers, stack, server, ops, 
+                                             neighbours, targets, tmp_targets, 
+                                             op, iteration, send_iteration, 
                                              last_op, write_request, 
-                                             read_request, ops_ >>
+                                             read_request >>
 
 ReadFromReplicas(self) == /\ pc[self] = "ReadFromReplicas"
                           /\ IF send_iteration[self] < Replicas
@@ -412,11 +418,11 @@ ReadFromReplicas(self) == /\ pc[self] = "ReadFromReplicas"
                                                      send_iteration, 
                                                      send_written_to >>
                           /\ UNCHANGED << ServerData, ClientCrdts, ServerCrdts, 
-                                          WrittenFiles, ConfirmedFiles, 
-                                          OnlineServers, stack, server, ops, 
-                                          neighbours, targets, tmp_targets, op, 
-                                          iteration, last_op, write_request, 
-                                          read_request, ops_ >>
+                                          ServerOps, WrittenFiles, 
+                                          ConfirmedFiles, OnlineServers, stack, 
+                                          server, ops, neighbours, targets, 
+                                          tmp_targets, op, iteration, last_op, 
+                                          write_request, read_request >>
 
 client(self) == Run(self) \/ IncRun(self) \/ WriteToReplicas(self)
                    \/ StoreInLocalVolume(self) \/ StoreInServerVolume(self)
@@ -434,11 +440,11 @@ RunServer(self) == /\ pc[self] = "RunServer"
                       \/ /\ pc' = [pc EXCEPT ![self] = "GossipState"]
                          /\ UNCHANGED OnlineServers
                    /\ UNCHANGED << ServerQueues, ServerData, ClientCrdts, 
-                                   ServerCrdts, WrittenFiles, ConfirmedFiles, 
-                                   stack, server, ops, neighbours, targets, 
-                                   tmp_targets, op, iteration, send_iteration, 
-                                   send_written_to, last_op, write_request, 
-                                   read_request, ops_ >>
+                                   ServerCrdts, ServerOps, WrittenFiles, 
+                                   ConfirmedFiles, stack, server, ops, 
+                                   neighbours, targets, tmp_targets, op, 
+                                   iteration, send_iteration, send_written_to, 
+                                   last_op, write_request, read_request >>
 
 ServiceRequest(self) == /\ pc[self] = "ServiceRequest"
                         /\ IF ServerQueues[self].write # <<>>
@@ -446,29 +452,29 @@ ServiceRequest(self) == /\ pc[self] = "ServiceRequest"
                                    /\ ServerQueues' = [ServerQueues EXCEPT ![self].write = Tail(ServerQueues[self].write)]
                                    /\ ServerData' = [ServerData EXCEPT ![self] = ServerData[self] \union {write_request'[self]}]
                                    /\ ConfirmedFiles' = (ConfirmedFiles \union {write_request'[self]})
-                                   /\ UNCHANGED << ServerCrdts, op, 
-                                                   read_request, ops_ >>
+                                   /\ UNCHANGED << ServerCrdts, ServerOps, op, 
+                                                   read_request >>
                               ELSE /\ IF ServerQueues[self].read # <<>>
                                          THEN /\ read_request' = [read_request EXCEPT ![self] = Head(ServerQueues[self].read)]
                                               /\ ServerQueues' = [ServerQueues EXCEPT ![self].read = Tail(ServerQueues[self].read)]
                                               /\ TRUE
-                                              /\ UNCHANGED << ServerCrdts, op, 
-                                                              ops_ >>
+                                              /\ UNCHANGED << ServerCrdts, 
+                                                              ServerOps, op >>
                                          ELSE /\ IF ServerQueues[self].crdt # <<>>
                                                     THEN /\ op' = [op EXCEPT ![self] = Head(ServerQueues[self].crdt)]
                                                          /\ ServerQueues' = [ServerQueues EXCEPT ![self].crdt = Tail(ServerQueues[self].crdt)]
                                                          /\ LET new_version == CrdtSet!SetApplyOp(ServerCrdts[self], op'[self]) IN
                                                               IF ServerCrdts[self] # new_version
                                                                  THEN /\ ServerCrdts' = [ServerCrdts EXCEPT ![self] = new_version]
-                                                                      /\ ops_' = [ops_ EXCEPT ![self] = Append(ops_[self], op'[self])]
+                                                                      /\ ServerOps' = [ServerOps EXCEPT ![self] = Append(ServerOps[self], op'[self])]
                                                                  ELSE /\ TRUE
                                                                       /\ UNCHANGED << ServerCrdts, 
-                                                                                      ops_ >>
+                                                                                      ServerOps >>
                                                     ELSE /\ TRUE
                                                          /\ UNCHANGED << ServerQueues, 
                                                                          ServerCrdts, 
-                                                                         op, 
-                                                                         ops_ >>
+                                                                         ServerOps, 
+                                                                         op >>
                                               /\ UNCHANGED read_request
                                    /\ UNCHANGED << ServerData, ConfirmedFiles, 
                                                    write_request >>
@@ -482,7 +488,7 @@ ServiceRequest(self) == /\ pc[self] = "ServiceRequest"
 GossipState(self) == /\ pc[self] = "GossipState"
                      /\ IF ~ServerCrdtsSame
                            THEN /\ /\ neighbours' = [neighbours EXCEPT ![self] = 1]
-                                   /\ ops' = [ops EXCEPT ![self] = ops_[self]]
+                                   /\ ops' = [ops EXCEPT ![self] = ServerOps[self]]
                                    /\ server' = [server EXCEPT ![self] = self]
                                    /\ stack' = [stack EXCEPT ![self] = << [ procedure |->  "GossipBroadcast",
                                                                             pc        |->  "RunServer",
@@ -501,10 +507,10 @@ GossipState(self) == /\ pc[self] = "GossipState"
                                 /\ UNCHANGED << stack, server, ops, neighbours, 
                                                 targets, tmp_targets, op >>
                      /\ UNCHANGED << ServerQueues, ServerData, ClientCrdts, 
-                                     ServerCrdts, WrittenFiles, ConfirmedFiles, 
-                                     OnlineServers, iteration, send_iteration, 
-                                     send_written_to, last_op, write_request, 
-                                     read_request, ops_ >>
+                                     ServerCrdts, ServerOps, WrittenFiles, 
+                                     ConfirmedFiles, OnlineServers, iteration, 
+                                     send_iteration, send_written_to, last_op, 
+                                     write_request, read_request >>
 
 server_(self) == RunServer(self) \/ ServiceRequest(self)
                     \/ GossipState(self)
@@ -527,5 +533,5 @@ Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Dec 25 21:09:39 CET 2022 by leon
+\* Last modified Tue Dec 27 00:10:31 CET 2022 by leon
 \* Created Tue Dec 20 19:55:07 CET 2022 by leon
