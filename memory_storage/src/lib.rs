@@ -10,8 +10,9 @@ use std::{
 
 /// The In-Memory Storage
 pub struct MemoryStorage {
-    chunks:
-        Mutex<HashMap<std::path::PathBuf, HashMap<hls_core::ChunkId, Arc<hls_core::ChunkData>>>>,
+    chunks: Mutex<
+        HashMap<std::path::PathBuf, HashMap<hls_core::metadata::ChunkId, Arc<hls_core::ChunkData>>>,
+    >,
 }
 
 /// The Errors returned by the Storage
@@ -21,7 +22,7 @@ pub enum MemoryStorageError {
     /// The File you tried to access does not exists
     FileDoesntExist(std::path::PathBuf),
     /// The Chunk you tried to access is unknown
-    UnknownChunk(std::path::PathBuf, hls_core::ChunkId),
+    UnknownChunk(std::path::PathBuf, hls_core::metadata::ChunkId),
 }
 
 impl MemoryStorage {
@@ -65,7 +66,7 @@ impl hls_core::Storage for MemoryStorage {
     fn write_chunk(
         &self,
         path: &std::path::Path,
-        chunk: hls_core::ChunkId,
+        chunk: hls_core::metadata::ChunkId,
         data: hls_core::ChunkData,
     ) -> Result<(), hls_core::StorageError> {
         let mut chunks = self.chunks.lock().expect("");
@@ -81,7 +82,7 @@ impl hls_core::Storage for MemoryStorage {
     fn read_chunk(
         &self,
         path: &std::path::Path,
-        chunk: hls_core::ChunkId,
+        chunk: hls_core::metadata::ChunkId,
     ) -> Result<std::sync::Arc<hls_core::ChunkData>, hls_core::StorageError> {
         let chunks = self.chunks.lock().expect("");
 
