@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["AddCtx","AddCtx is used for mutations add new information to a CRDT"],["ReadCtx","ReadCtx’s are used to extract data from CRDT’s while maintaining some causal history. You should store ReadCtx’s close to where mutation is exposed to the user."],["RmCtx","RmCtx is used for mutations that remove information from a CRDT"]]};

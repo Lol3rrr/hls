@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["GCounter","`GCounter` is a grow-only witnessed counter."]]};

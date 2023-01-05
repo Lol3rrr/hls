@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Dot","Dot is a version marker for a single actor"],["DotRange","A type for modeling a range of Dot’s from one actor."],["OrdDot","An ordered dot. dot’s are first ordered by actor, dots from the same actor are ordered by counter."]]};

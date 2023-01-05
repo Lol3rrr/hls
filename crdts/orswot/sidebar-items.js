@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Op","Op’s define an edit to an Orswot, Op’s must be replayed in the exact order they were produced to guarantee convergence."],["Validation","The variations that an ORSWOT may fail validation."]],"struct":[["Orswot","`Orswot` is an add-biased or-set without tombstones ported from the riak_dt CRDT library."]]};

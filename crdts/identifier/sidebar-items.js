@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["Identifier","A dense Identifier, if you have two identifiers that are different, we can always construct an identifier between them."]]};

@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["ChunkId","Identifies a single Chunk of a given File"],["ChunkSet","The Set of Nodes that store a given Chunk"],["FileMetadata","Stores the Metadata for a single File"],["FilePath","The Path to a file"],["NodeId","The ID of a Node"],["VolumeMetadata","Stores the Metadata for a specific Volume"]]};

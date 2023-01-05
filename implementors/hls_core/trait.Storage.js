@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"memory_storage":[["impl <a class=\"trait\" href=\"hls_core/trait.Storage.html\" title=\"trait hls_core::Storage\">Storage</a> for <a class=\"struct\" href=\"memory_storage/struct.MemoryStorage.html\" title=\"struct memory_storage::MemoryStorage\">MemoryStorage</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

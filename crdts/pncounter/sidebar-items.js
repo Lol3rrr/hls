@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Dir","The Direction of an Op."]],"struct":[["Op","An Op which is produced through from mutating the counter Ship these ops to other replicas to have them sync up."],["PNCounter","`PNCounter` allows the counter to be both incremented and decremented by representing the increments (P) and the decrements (N) in separate internal G-Counters."]]};

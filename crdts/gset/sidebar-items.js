@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"struct":[["GSet","A `GSet` is a grow-only set."]]};

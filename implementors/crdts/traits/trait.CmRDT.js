@@ -1,0 +1,4 @@
+(function() {var implementors = {
+"crdts":[],
+"hls_core":[["impl <a class=\"trait\" href=\"crdts/traits/trait.CmRDT.html\" title=\"trait crdts::traits::CmRDT\">CmRDT</a> for <a class=\"struct\" href=\"hls_core/metadata/struct.ChunkSet.html\" title=\"struct hls_core::metadata::ChunkSet\">ChunkSet</a>"],["impl <a class=\"trait\" href=\"crdts/traits/trait.CmRDT.html\" title=\"trait crdts::traits::CmRDT\">CmRDT</a> for <a class=\"struct\" href=\"hls_core/metadata/struct.FileMetadata.html\" title=\"struct hls_core::metadata::FileMetadata\">FileMetadata</a>"],["impl <a class=\"trait\" href=\"crdts/traits/trait.CmRDT.html\" title=\"trait crdts::traits::CmRDT\">CmRDT</a> for <a class=\"struct\" href=\"hls_core/metadata/struct.VolumeMetadata.html\" title=\"struct hls_core::metadata::VolumeMetadata\">VolumeMetadata</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

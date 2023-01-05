@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":[["Op","Defines the set of operations over the MVReg"]],"struct":[["MVReg","MVReg (Multi-Value Register) On concurrent writes, we will keep all values for which we can’t establish a causal history."]]};
