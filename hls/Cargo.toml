@@ -1,0 +1,10 @@
+[package]
+name = "hls"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+hls_core = { path = "../hls_core" }
+memory_storage = { path = "../memory_storage" }

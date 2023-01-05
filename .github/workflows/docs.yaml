@@ -19,7 +19,7 @@ jobs:
           default: true
           override: true
 
-      - name: Run Clippy
+      - name: Generate Docs
         run: cargo doc
 
       - name: Deploy 🚀
