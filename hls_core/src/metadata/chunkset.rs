@@ -70,7 +70,7 @@ impl ChunkSet {
         self.0.apply(op);
     }
 
-    /// Get the Raw Add Operation for adding the given Node.
+    /// Get the Operation for adding the given Node.
     /// This does not modify the current ChunkSet by itself, only once the Operation has been applied
     pub fn add_op(&self, entry: NodeId, ctx: crdts::ctx::AddCtx<Actor>) -> <Self as CmRDT>::Op {
         self.0.add(entry, ctx)
@@ -81,6 +81,12 @@ impl ChunkSet {
         let rm_ctx = self.0.read_ctx().derive_rm_ctx();
         let op = self.0.rm(entry, rm_ctx);
         self.0.apply(op);
+    }
+
+    /// Get the Operation for removign the given Node.
+    /// This does not modify the current ChunkSet by itself, only once the Operation has been applied
+    pub fn remove_op(&self, entry: NodeId, ctx: crdts::ctx::RmCtx<Actor>) -> <Self as CmRDT>::Op {
+        self.0.rm(entry, ctx)
     }
 
     /// Checks if the ChunkSet contains the given Entry

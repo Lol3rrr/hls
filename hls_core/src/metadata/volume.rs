@@ -57,8 +57,8 @@ impl VolumeMetadata {
     /// # let file_path = FilePath::from("/path".to_string());
     /// # let chunk_id = ChunkId::from(0);
     /// # let node_id = NodeId::from("node".to_string());
-    ///
     /// let mut volume = VolumeMetadata::new();
+    ///
     /// assert_eq!(0, volume.update_count(&("test".to_string())));
     /// volume.update(file_path.clone(), "test", |filemeta, ctx| {
     ///     filemeta.update_op(chunk_id, |chunks, ctx| {
@@ -83,5 +83,10 @@ impl VolumeMetadata {
     /// Get the current Update count of the Volume
     pub fn update_count(&self, actor: &Actor) -> u64 {
         self.updates.get(actor)
+    }
+
+    /// Get the Metadata for a specific File in the Volume
+    pub fn get_file(&self, path: &FilePath) -> Option<FileMetadata> {
+        self.files.get(path).val
     }
 }

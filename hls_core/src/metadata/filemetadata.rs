@@ -86,7 +86,7 @@ impl FileMetadata {
         self.chunks.apply(op);
     }
 
-    /// Returns the Raw Operation that would be executed as part of a [`FileMetadata::update`]
+    /// Returns the Operation that would be executed as part of a [`FileMetadata::update`]
     pub fn update_op<F>(
         &self,
         id: ChunkId,

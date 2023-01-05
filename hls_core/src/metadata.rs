@@ -1,5 +1,34 @@
 //! # Metadata
 //! Contains all the Datastructures to manage the Metadata for HLS
+//!
+//! ## Structure
+//! The Metadata for a Volume is stored inside a [`VolumeMetadata`].
+//!
+//! ## Example
+//! ```rust
+//! # use hls_core::metadata::{ChunkId, NodeId, FilePath, VolumeMetadata};
+//! let file_path = FilePath::from("/test/path.txt".to_string());
+//! let chunk_id = ChunkId::from(0);
+//! let node_id = NodeId::from("test".to_string());
+//! let mut volume = VolumeMetadata::new();
+//!
+//! // Add the new Node to the Chunk
+//! volume.update(file_path.clone(), "actor1", |chunks, ctx| {
+//!     chunks.update_op(chunk_id.clone(), |nodes, ctx| {
+//!         nodes.add_op(node_id.clone(), ctx)
+//!     }, ctx)
+//! });
+//!
+//! // Load the Metadata for the File we just modified
+//! let file_meta = volume.get_file(&file_path)
+//!                     .expect("We just previously added some metadata for this file");
+//!
+//! // Load the Metadata for the Chunk
+//! let chunk_nodes = file_meta.get(&chunk_id)
+//!                     .expect("We just previously added a Node to the Chunk");
+//!
+//! assert!(chunk_nodes.contains(&node_id));
+//! ```
 
 use serde_derive::{Deserialize, Serialize};
 

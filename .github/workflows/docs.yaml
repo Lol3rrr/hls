@@ -15,7 +15,6 @@ jobs:
         with:
           profile: minimal
           toolchain: nightly
-          components: clippy
           default: true
           override: true
 
@@ -25,4 +24,4 @@ jobs:
       - name: Deploy 🚀
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: target/doc # The folder the action should deploy.
+          folder: target/doc # The folder the action should deploy
