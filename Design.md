@@ -62,3 +62,10 @@ TODO Handle Node failure
 * 2) Once the Volume is marked as being repaired, the current Node acts as a Client and tries to relocate the chunks that were stored on the failed Node
 
 ### A Node joins the Cluster
+
+## Failure Scenarios
+### Server Node Fails during normal Operation
+
+### Client Fails during normal Operation
+
+### Server Fails during Client Write
