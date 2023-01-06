@@ -5,7 +5,7 @@ var sourcesIndex = JSON.parse('{\
 "crunchy":["",[],["lib.rs"]],\
 "env_logger":["",[["filter",[],["mod.rs","regex.rs"]],["fmt",[["humantime",[],["mod.rs","shim_impl.rs"]],["writer",[["termcolor",[],["mod.rs","shim_impl.rs"]]],["atty.rs","mod.rs"]]],["mod.rs"]]],["lib.rs"]],\
 "getrandom":["",[],["error.rs","error_impls.rs","lib.rs","linux_android.rs","use_file.rs","util.rs","util_libc.rs"]],\
-"hls":["",[],["main.rs"]],\
+"hls":["",[],["lib.rs"]],\
 "hls_core":["",[["metadata",[],["chunkset.rs","filemetadata.rs","volume.rs"]]],["lib.rs","metadata.rs","network.rs","server.rs"]],\
 "libc":["",[["unix",[["linux_like",[["linux",[["arch",[["generic",[],["mod.rs"]]],["mod.rs"]],["gnu",[["b64",[["x86_64",[],["align.rs","mod.rs","not_x32.rs"]]],["mod.rs"]]],["align.rs","mod.rs"]]],["align.rs","mod.rs","non_exhaustive.rs"]]],["mod.rs"]]],["align.rs","mod.rs"]]],["fixed_width_ints.rs","lib.rs","macros.rs"]],\
 "log":["",[],["lib.rs","macros.rs"]],\
