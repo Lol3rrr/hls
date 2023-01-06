@@ -1,4 +1,4 @@
-use crdts::{CmRDT, CvRDT};
+use crdts::{CmRDT, CvRDT, ResetRemove};
 use serde::{Deserialize, Serialize};
 
 use super::{Actor, FileMetadata, FilePath};
@@ -8,6 +8,13 @@ use super::{Actor, FileMetadata, FilePath};
 pub struct VolumeMetadata {
     files: crdts::map::Map<FilePath, FileMetadata, Actor>,
     updates: crdts::VClock<Actor>,
+}
+
+impl ResetRemove<Actor> for VolumeMetadata {
+    fn reset_remove(&mut self, clock: &crdts::VClock<Actor>) {
+        self.files.reset_remove(clock);
+        self.updates.reset_remove(clock);
+    }
 }
 
 impl CmRDT for VolumeMetadata {

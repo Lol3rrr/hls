@@ -16,9 +16,6 @@ pub mod network;
 /// used by said User.
 pub struct VolumeKey();
 
-/// Identifies a single Volume uniquely
-pub struct VolumeId();
-
 /// The Data contained in a single Chunk of a File
 pub struct ChunkData(Vec<u8>);
 

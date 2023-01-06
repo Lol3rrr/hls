@@ -1,6 +1,9 @@
 //! Contains all the Network related Parts of HLS
 
-use crate::{metadata::ChunkId, VolumeId, VolumeKey};
+use crate::{
+    metadata::{ChunkId, VolumeId},
+    VolumeKey,
+};
 
 /// The Requests send from the Client to the Server
 pub enum Request {
