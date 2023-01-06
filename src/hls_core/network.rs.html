@@ -144,6 +144,21 @@
 <a href="#144" id="144">144</a>
 <a href="#145" id="145">145</a>
 <a href="#146" id="146">146</a>
+<a href="#147" id="147">147</a>
+<a href="#148" id="148">148</a>
+<a href="#149" id="149">149</a>
+<a href="#150" id="150">150</a>
+<a href="#151" id="151">151</a>
+<a href="#152" id="152">152</a>
+<a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
+<a href="#157" id="157">157</a>
+<a href="#158" id="158">158</a>
+<a href="#159" id="159">159</a>
+<a href="#160" id="160">160</a>
+<a href="#161" id="161">161</a>
 </pre><pre class="rust"><code><span class="doccomment">//! Contains all the Network related Parts of HLS
 
 </span><span class="kw">use crate</span>::{
@@ -289,6 +304,21 @@
 }
 
 <span class="doccomment">/// All the Server specific Networking Parts
-</span><span class="kw">pub mod </span>server {}
+</span><span class="kw">pub mod </span>server {
+    <span class="kw">use </span><span class="kw">crate</span>::metadata::{<span class="self">self</span>, VolumeId};
+    <span class="kw">use </span>serde_derive::{Deserialize, Serialize};
+
+    <span class="doccomment">/// All the Messages send between Servers
+    </span><span class="attr">#[derive(Debug, Serialize, Deserialize)]
+    </span><span class="kw">pub enum </span>GossipMessage {
+        <span class="doccomment">/// The current State of a given Volume
+        </span>VolumeState {
+            <span class="doccomment">/// The ID of the Volume
+            </span>id: VolumeId,
+            <span class="doccomment">/// The State of the Volume
+            </span>data: metadata::VolumeMetadata,
+        },
+    }
+}
 </code></pre></div>
 </section></main><div id="rustdoc-vars" data-root-path="../../" data-static-root-path="../../static.files/" data-current-crate="hls_core" data-themes="" data-resource-suffix="" data-rustdoc-version="1.68.0-nightly (388538fc9 2023-01-05)" data-search-js="search-181581080540673f.js" data-settings-js="settings-bebeae96e00e4617.js" data-settings-css="settings-58836c674e2f7bd2.css" ></div></body></html>

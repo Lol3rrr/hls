@@ -151,11 +151,15 @@
 <a href="#151" id="151">151</a>
 <a href="#152" id="152">152</a>
 <a href="#153" id="153">153</a>
+<a href="#154" id="154">154</a>
+<a href="#155" id="155">155</a>
+<a href="#156" id="156">156</a>
 </pre><pre class="rust"><code><span class="doccomment">//! # Metadata
 //! Contains all the Datastructures to manage the Metadata for HLS
 //!
 //! ## Structure
-//! The Metadata for a Volume is stored inside a [`VolumeMetadata`].
+//! The Metadata for a Volume is stored inside a [`VolumeMetadata`] and all the Volume Metadata is
+//! stored inside a [`ClusterMetadata`].
 //!
 //! ## Example
 //! ### Managing a single Volume
@@ -252,12 +256,14 @@
 /// # let volume_id = VolumeId::from(&quot;test&quot;.to_string());
 /// let mut cluster = ClusterMetadata::new();
 ///
+/// // Create the new Volume Instance
 /// let mut volume = cluster.create(volume_id.clone())
 ///                     .cloned().expect(&quot;The Cluster is still empty&quot;);
 ///
 /// // Do something with the Volume
 /// // ...
 ///
+/// // Merge the modified Volume with the previous Version in the Map
 /// cluster.merge_value(volume_id, volume);
 /// ```
 </span><span class="kw">pub struct </span>ClusterMetadata {
