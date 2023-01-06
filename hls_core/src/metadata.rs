@@ -2,7 +2,8 @@
 //! Contains all the Datastructures to manage the Metadata for HLS
 //!
 //! ## Structure
-//! The Metadata for a Volume is stored inside a [`VolumeMetadata`].
+//! The Metadata for a Volume is stored inside a [`VolumeMetadata`] and all the Volume Metadata is
+//! stored inside a [`ClusterMetadata`].
 //!
 //! ## Example
 //! ### Managing a single Volume
@@ -99,12 +100,14 @@ type Actor = String;
 /// # let volume_id = VolumeId::from("test".to_string());
 /// let mut cluster = ClusterMetadata::new();
 ///
+/// // Create the new Volume Instance
 /// let mut volume = cluster.create(volume_id.clone())
 ///                     .cloned().expect("The Cluster is still empty");
 ///
 /// // Do something with the Volume
 /// // ...
 ///
+/// // Merge the modified Volume with the previous Version in the Map
 /// cluster.merge_value(volume_id, volume);
 /// ```
 pub struct ClusterMetadata {
