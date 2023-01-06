@@ -143,4 +143,19 @@ pub mod client {
 }
 
 /// All the Server specific Networking Parts
-pub mod server {}
+pub mod server {
+    use crate::metadata::{self, VolumeId};
+    use serde_derive::{Deserialize, Serialize};
+
+    /// All the Messages send between Servers
+    #[derive(Debug, Serialize, Deserialize)]
+    pub enum GossipMessage {
+        /// The current State of a given Volume
+        VolumeState {
+            /// The ID of the Volume
+            id: VolumeId,
+            /// The State of the Volume
+            data: metadata::VolumeMetadata,
+        },
+    }
+}
