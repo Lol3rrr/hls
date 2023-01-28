@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crdts::{CmRDT, CvRDT, ResetRemove};
 use serde::{Deserialize, Serialize};
 
@@ -87,9 +89,9 @@ impl VolumeMetadata {
         self.updates.apply(self.updates.inc(actor));
     }
 
-    /// Get the current Update count of the Volume
-    pub fn update_count(&self, actor: &Actor) -> u64 {
-        self.updates.get(actor)
+    /// Get the current largest Update count of the Volume
+    pub fn update_count(&self) -> u64 {
+        *self.updates.dots.values().max().unwrap_or(&0)
     }
 
     /// Get the Metadata for a specific File in the Volume

@@ -9,3 +9,4 @@ edition = "2021"
 crdts = { workspace = true }
 serde = { workspace = true }
 serde_derive = { workspace = true }
+tokio = { workspace = true }

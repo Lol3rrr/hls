@@ -1,9 +1,10 @@
 //! The Core parts of HLS
 #![deny(unsafe_code)]
 #![warn(missing_docs)]
-// #![feature(async_fn_in_trait)]
+#![feature(async_fn_in_trait)]
 // #![feature(return_position_impl_trait_in_trait)]
 
+pub mod client;
 mod server;
 
 pub use server::{Server, ServerHandle};
@@ -14,6 +15,7 @@ pub mod network;
 
 /// The Key used to authenticate that a user gets from the Server to show that a Volume is currently
 /// used by said User.
+#[derive(Debug, Clone)]
 pub struct VolumeKey();
 
 /// The Data contained in a single Chunk of a File

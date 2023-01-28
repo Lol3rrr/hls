@@ -1,7 +1,7 @@
 //! Contains all the Network related Parts of HLS
 
 use crate::{
-    metadata::{ChunkId, VolumeId},
+    metadata::{ChunkId, FilePath, VolumeId, VolumeMetadata},
     VolumeKey,
 };
 
@@ -27,6 +27,8 @@ pub enum Request {
         key: VolumeKey,
         /// The Volume to free
         volume: VolumeId,
+        /// The Latest Volume Metadata State from the Client Side
+        latest_state: VolumeMetadata,
     },
     /// Read the Chunk of the specified File
     ReadChunk {
@@ -61,7 +63,7 @@ pub enum Request {
         /// The Volume in which the File/Chunk is located
         volume: VolumeId,
         /// The Path of the File
-        path: (),
+        path: FilePath,
         /// The Chunk to delete
         chunk: ChunkId,
     },
@@ -72,7 +74,7 @@ pub enum Request {
         /// The Volume in which the File is located
         volume: VolumeId,
         /// The Path of the File to delete
-        path: (),
+        path: FilePath,
     },
 }
 
@@ -82,6 +84,10 @@ pub enum Response {
     AcquiredVolume {
         /// The Key to authenticate future Requests by the Client
         key: VolumeKey,
+        /// The Volume Metadata as currently known by the serving Server (might not be most recent)
+        volume_meta: VolumeMetadata,
+        /// The Count of the Volume Metadata the last time it was saved
+        latest_count: u64,
     },
     /// A Confirmation for the Request that was send
     Confirmation,
@@ -135,10 +141,10 @@ pub mod client {
         type Error: std::error::Error;
 
         /// The Address Type used for addressing Nodes in the Cluster
-        type Address;
+        type Address: Clone;
 
         /// Send a given Request to the target Server
-        fn send(&self, target: Self::Address, msg: Request) -> Result<Response, Self::Error>;
+        async fn send(&self, target: Self::Address, msg: Request) -> Result<Response, Self::Error>;
     }
 }
 

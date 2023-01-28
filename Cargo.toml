@@ -5,3 +5,5 @@ members = ["hls", "hls_core", "memory_storage"]
 crdts = "7.2.0"
 serde = "1.0.152"
 serde_derive = "1.0.152"
+
+tokio = { version = "1.0", features = ["full"] }
